@@ -1,13 +1,10 @@
 package edu.syr.task.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.*;
 
-import java.util.List;
+import java.util.*;
 
 @Document(collection = "users")
 @NoArgsConstructor
@@ -21,7 +18,7 @@ public class User {
     private  String Department;
 
     @DBRef
-    private List<Task> tasks;
+    private List<Task> tasks = new ArrayList<>();
 
 
 }
