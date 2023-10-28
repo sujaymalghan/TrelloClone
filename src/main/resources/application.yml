@@ -1,0 +1,13 @@
+spring:
+  data:
+    mongodb:
+      uri : mongodb+srv://sujay:qwertyuiop@news.8hwz3s1.mongodb.net/?retryWrites=true&w=majority
+      database : taskdetails
+
+cors:
+  allowedOrigin: '*'
+  allowedMethods: '*'
+  allowedHeaders: '*'
+  allowedCredentials: false
+  corsConfiguration: '/**'
+
