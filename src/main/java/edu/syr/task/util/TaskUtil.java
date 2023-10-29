@@ -6,9 +6,9 @@ public class TaskUtil {
 
     public static boolean areStringsEqualIgnoreCase(String str1, String str2) {
         if (str1 == null || str2 == null) {
-            return str1 == str2;
+            return str1.equals(str2);
         }
-        return str1.toLowerCase().equals(str2.toLowerCase());
+        return str1.equalsIgnoreCase(str2.toLowerCase());
     }
 
     public static boolean areTaskStates(State state1, State state2) {
@@ -17,4 +17,12 @@ public class TaskUtil {
         }
         return state1.name().equalsIgnoreCase(state2.name());
     }
+
+    public static boolean aredescription(String description, String description1) {
+        if (description == null || description1 == null) {
+            return description.equals(description1);
+        }
+        return description.equalsIgnoreCase(description1);
+    }
+
 }

@@ -11,6 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -18,13 +20,12 @@ import java.util.List;
 public class TaskController {
 
 
+    @Autowired
     private TaskService taskService;
+    @Autowired
     private SequenceGeneratorService sequenceGeneratorService;
 
-    public TaskController(TaskService taskService, SequenceGeneratorService sequenceGeneratorService) {
-        this.taskService = taskService;
-        this.sequenceGeneratorService = sequenceGeneratorService;
-    }
+
 
     // Create Task
     @PostMapping("/create")
@@ -34,9 +35,11 @@ public class TaskController {
         task.setState((newtask.getState() != null) ? newtask.getState() : State.TODO);
         task.setAssignedTo(null);
         task.setCreationTime(LocalDateTime.now());
-        task.setComments(newtask.getComments()!=null ? newtask.getComments():null);
+        task.setComments(Arrays.asList(""));
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
-        task.setAlldetails(null);
+        HashMap<Integer, List<String>> hashMap = new HashMap<>();
+        hashMap.put(task.getTaskid(), Arrays.asList(" "));
+        task.setAlldetails(hashMap);
         task = taskService.save(task);
         return new ResponseEntity<>(task.getTaskid(), HttpStatus.CREATED);
     }
@@ -44,7 +47,8 @@ public class TaskController {
     // Modify Task
     @PutMapping("/modify")
     public ResponseEntity<String> modifyTask(@RequestBody Task taskUpdates) {
-        if (taskUpdates.getId() == null || taskUpdates.getId().isEmpty()) {
+
+        if (taskUpdates.getTaskid() == null) {
             return new ResponseEntity<>("Task ID must be provided.", HttpStatus.BAD_REQUEST);
         }
 

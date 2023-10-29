@@ -28,7 +28,7 @@ public class UserControllerTests {
     public void testCreateUser() throws Exception {
         // Sample User to be returned by the mock service
         User mockUser = new User();
-        mockUser.setId("12345");
+        mockUser.setId(null);
         mockUser.setName("John");
         mockUser.setDepartment("IT");
 

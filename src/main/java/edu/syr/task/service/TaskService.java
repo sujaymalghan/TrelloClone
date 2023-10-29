@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static edu.syr.task.util.TaskUtil.areStringsEqualIgnoreCase;
-import static edu.syr.task.util.TaskUtil.areTaskStates;
+import static edu.syr.task.util.TaskUtil.*;
 
 @Service
 public class TaskService {
@@ -30,16 +30,16 @@ public class TaskService {
 
     public boolean deleteTask(int taskid) {
 
-        Optional<Task> taskOptional = taskRepository.findByTaskid(taskid);
+        Task taskOptional = taskRepository.findByTaskid(taskid);
 
-        if (taskOptional.isPresent()) {
-            Task task = taskOptional.get();
-            taskRepository.delete(task);
+        if (taskOptional!=null) {
 
-            Optional<User> userOptional = userRepository.findByTasksId(task.getId());
+            taskRepository.delete(taskOptional);
+
+            Optional<User> userOptional = userRepository.findByTasksId(taskOptional.getId());
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
-                user.getTasks().remove(task);
+                user.getTasks().remove(taskOptional);
                 userRepository.save(user);
             }
 
@@ -55,23 +55,41 @@ public class TaskService {
 
     public boolean modifyTask(Task taskUpdates) {
         Integer  taskId = taskUpdates.getTaskid();
-        Optional<Task> optionalOriginalTask = taskRepository.findByTaskid(taskId);
+        Task optionalOriginalTask = taskRepository.findByTaskid(taskId);
 
-        if (!optionalOriginalTask.isPresent()) {
+        if (optionalOriginalTask==null) {
             throw new TaskException("Task not found with ID: " + taskId);
         }
 
-        Task originalTask = optionalOriginalTask.get();
+        String assignedUser = taskUpdates.getAssignedTo();
+        List<User> checkuser = userRepository.existsByName(assignedUser);
+
+        if (checkuser.isEmpty()) {
+            throw new TaskException("Assigned user not found in User table.");
+        }
+
+        Task originalTask = optionalOriginalTask;
         List<String> changes = new ArrayList<>();
+        HashMap<Integer, List<String>> newchanges = originalTask.getAlldetails();
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = LocalDateTime.now().format(formatter);
 
         if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
-            changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + " Time:"+ LocalDateTime.now() );
+            changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + "at Time: "+ formattedDateTime );
             originalTask.setAssignedTo(taskUpdates.getAssignedTo());
         }
 
         if (!areTaskStates(originalTask.getState(), taskUpdates.getState())) {
-            changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " Time: " + LocalDateTime.now());
+            changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time: " + formattedDateTime);
             originalTask.setState(taskUpdates.getState());
+        }
+
+        if (!aredescription(originalTask.getDescription(),taskUpdates.getDescription()))
+        {
+
+            originalTask.setDescription("New Desciption: " + taskUpdates.getDescription() );
+
         }
 
 
@@ -80,16 +98,20 @@ public class TaskService {
         List<String> commentsFromUpdatedTask = taskUpdates.getComments();
 
         if (commentsFromUpdatedTask != null && !commentsFromUpdatedTask.isEmpty()) {
-            changes.add("Added new comments: " + commentsFromUpdatedTask);
+            changes.add("Added new comments: " + commentsFromUpdatedTask + "at Timme:  " + formattedDateTime);
             originalComments.addAll(commentsFromUpdatedTask);
         }
+
         originalTask.setComments(originalComments);
+        changes.addAll(newchanges.get(taskId)!=null ? newchanges.get((taskId)) : Arrays.asList(""));
+
+        HashMap<Integer,List<String>> modifiedalldetials =new HashMap<>();
+        modifiedalldetials.put(taskId,changes);
+        originalTask.setAlldetails(modifiedalldetials);
         taskRepository.save(originalTask);
 
         return true;
     }
-
-
 
 
 }
