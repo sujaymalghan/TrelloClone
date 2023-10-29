@@ -1,6 +1,6 @@
 package edu.syr.task.dto;
 
-import edu.syr.task.model.TaskState;
+import edu.syr.task.model.State;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,7 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 public class TaskDTO {
 
-    private TaskState state;
+    private State state;
+    private int taskid;
     private String assignedTo;
     private String description;
     private List<String> comments;

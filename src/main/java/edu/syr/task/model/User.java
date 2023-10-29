@@ -1,6 +1,7 @@
 package edu.syr.task.model;
 
 import lombok.*;
+import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.*;
 
@@ -13,9 +14,9 @@ import java.util.*;
 public class User {
 
     @Id
-    private String id;
+    private ObjectId id;
     private String name;
-    private  String Department;
+    private  String department;
 
     @DBRef
     private List<Task> tasks = new ArrayList<>();

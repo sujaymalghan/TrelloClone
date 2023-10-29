@@ -1,6 +1,6 @@
 package edu.syr.task.model;
 
-public enum TaskState {
+public enum State {
     TODO,
     DOING,
     DONE;
