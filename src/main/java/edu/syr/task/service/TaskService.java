@@ -6,6 +6,7 @@ import edu.syr.task.model.Task;
 import edu.syr.task.model.User;
 import edu.syr.task.repository.TaskRepository;
 import edu.syr.task.repository.UserRepository;
+import edu.syr.task.util.LoggerSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,15 +21,19 @@ public class TaskService {
 
     @Autowired
     private TaskRepository taskRepository;
-
+    private LoggerSingleton logger = LoggerSingleton.getInstance();
     @Autowired
     private UserRepository userRepository;
     public Task save(Task task) {
+
+
+        logger.log("Saving task with ID: " + task.getTaskid());
         return taskRepository.save(task);
     }
 
 
     public boolean deleteTask(int taskid) {
+        logger.log("Attempting to delete task with ID: " + taskid);
 
         Task taskOptional = taskRepository.findByTaskid(taskid);
 
@@ -42,22 +47,29 @@ public class TaskService {
                 user.getTasks().remove(taskOptional);
                 userRepository.save(user);
             }
-
+            logger.log("Successfully deleted task with ID: " + taskid);
             return true;
         }
-
+        logger.log("Failed to delete task with ID: " + taskid);
         return false;
     }
 
     public List<Task> getAllTasks() {
+
+
+        logger.log("Fetching all tasks");
         return taskRepository.findAll();
     }
 
     public boolean modifyTask(Task taskUpdates) {
         Integer  taskId = taskUpdates.getTaskid();
+
+        logger.log("Attempting to modify task with ID: " + taskId);
+
         Task optionalOriginalTask = taskRepository.findByTaskid(taskId);
 
         if (optionalOriginalTask==null) {
+            logger.log("Task not found with ID: " + taskId);
             throw new TaskException("Task not found with ID: " + taskId);
         }
 
@@ -87,9 +99,7 @@ public class TaskService {
 
         if (!aredescription(originalTask.getDescription(),taskUpdates.getDescription()))
         {
-
             originalTask.setDescription("New Desciption: " + taskUpdates.getDescription() );
-
         }
 
 
@@ -104,12 +114,11 @@ public class TaskService {
 
         originalTask.setComments(originalComments);
         changes.addAll(newchanges.get(taskId)!=null ? newchanges.get((taskId)) : Arrays.asList(""));
-
         HashMap<Integer,List<String>> modifiedalldetials =new HashMap<>();
         modifiedalldetials.put(taskId,changes);
         originalTask.setAlldetails(modifiedalldetials);
         taskRepository.save(originalTask);
-
+        logger.log("Successfully modified task with ID: " + taskId);
         return true;
     }
 
