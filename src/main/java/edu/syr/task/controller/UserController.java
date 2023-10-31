@@ -1,9 +1,6 @@
 package edu.syr.task.controller;
 
-import edu.syr.task.model.DatabaseSequence;
-import edu.syr.task.model.Task;
 import edu.syr.task.model.User;
-import edu.syr.task.service.SequenceGeneratorService;
 import edu.syr.task.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

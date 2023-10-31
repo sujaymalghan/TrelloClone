@@ -2,7 +2,7 @@ package edu.syr.task.service;
 
 
 import edu.syr.task.dto.TaskDTO;
-import edu.syr.task.dto.UserDTO;
+
 import edu.syr.task.exception.TaskException;
 import edu.syr.task.model.State;
 import edu.syr.task.model.Task;
