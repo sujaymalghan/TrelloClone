@@ -19,7 +19,6 @@ public class User {
     private String name;
     private  String department;
 
-    @DBRef
     private List<TaskDTO> tasks = new ArrayList<>();
 
 

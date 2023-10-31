@@ -34,7 +34,7 @@ public class TaskController {
         task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
         task.setState(State.TODO);
         task.setAssignedTo("");
-        task.setCreationTime(LocalDateTime.now());
+        task.setCreationTime(LocalDateTime.now().toString());
         task.setComments(Arrays.asList(""));
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
         HashMap<Integer, List<String>> hashMap = new HashMap<>();
@@ -85,6 +85,8 @@ public class TaskController {
     public ResponseEntity<String> handleTaskException(TaskException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
+
+
 
 
 }

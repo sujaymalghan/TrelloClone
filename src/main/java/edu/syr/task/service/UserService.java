@@ -49,4 +49,8 @@ public class UserService {
         return usersWithTask;
     }
 
+    public List<User> existsByName(String assignedTo) {
+       return  userRepository.existsByName(assignedTo);
+
+    }
 }

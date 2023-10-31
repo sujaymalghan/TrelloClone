@@ -66,7 +66,7 @@ public class TaskService {
         return taskRepository.findAll();
     }
 @Transactional
-    public boolean modifyTask(Task taskUpdates) {
+public boolean modifyTask(Task taskUpdates) {
         Integer  taskId = taskUpdates.getTaskid();
 
         logger.log("Attempting to modify task with ID: " + taskId);
@@ -80,9 +80,6 @@ public class TaskService {
             throw new TaskException("Task not found with ID: " + taskId);
         }
 
-
-
-
         Task originalTask = optionalOriginalTask;
         List<String> changes = new ArrayList<>();
         HashMap<Integer, List<String>> newchanges = originalTask.getAlldetails();
@@ -93,16 +90,26 @@ public class TaskService {
         if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
             changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + "at Time: "+ formattedDateTime );
             originalTask.setAssignedTo(taskUpdates.getAssignedTo());
+            List<User> existingUsers = userService.existsByName(taskUpdates.getAssignedTo());
+            if (!existingUsers.isEmpty()) {
+
+                User assignedUser = existingUsers.get(0);
+                TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(), taskUpdates.getState());
+                assignedUser.getTasks().removeIf(task -> task.getTaskid() == newTaskDTO.getTaskid());
+
+                assignedUser.getTasks().add(newTaskDTO);
+
+                userRepository.save(assignedUser);
+            }
+
         }
 
         if (!areTaskStates(originalTask.getState(), taskUpdates.getState())) {
             changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time: " + formattedDateTime);
-
-
-
             if (taskUpdates.getState()== State.DONE)
             {
                 originalTask.setClosedTime(LocalDateTime.now().format(formatter));
+
             }
             originalTask.setState(taskUpdates.getState());
 

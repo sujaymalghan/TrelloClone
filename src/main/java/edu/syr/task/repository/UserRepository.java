@@ -11,7 +11,8 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends MongoRepository<User, ObjectId> {
-    Optional<User> findByTasksTaskid(int taskid);
-    //... other methods
-}
+    @Query("{ 'name' : { $regex: ?0, $options: 'i' } }")
+    List<User> existsByName(String assignedUser);
 
+    Optional<User> findByTasksTaskid(Integer taskid);
+}
