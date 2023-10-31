@@ -11,10 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TaskDTO {
 
-    private State state;
     private int taskid;
-    private String assignedTo;
-    private String description;
-    private List<String> comments;
+    private State state;
 
 }

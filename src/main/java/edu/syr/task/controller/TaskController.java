@@ -32,14 +32,15 @@ public class TaskController {
     public ResponseEntity<Integer> createTask(@RequestBody Task newtask) {
         Task task = new Task();
         task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
-        task.setState((newtask.getState() != null) ? newtask.getState() : State.TODO);
-        task.setAssignedTo(null);
+        task.setState(State.TODO);
+        task.setAssignedTo("");
         task.setCreationTime(LocalDateTime.now());
         task.setComments(Arrays.asList(""));
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
         HashMap<Integer, List<String>> hashMap = new HashMap<>();
         hashMap.put(task.getTaskid(), Arrays.asList(" "));
         task.setAlldetails(hashMap);
+        task.setClosedTime(null);
         task = taskService.save(task);
         return new ResponseEntity<>(task.getTaskid(), HttpStatus.CREATED);
     }
@@ -51,6 +52,7 @@ public class TaskController {
         if (taskUpdates.getTaskid() == null) {
             return new ResponseEntity<>("Task ID must be provided.", HttpStatus.BAD_REQUEST);
         }
+
 
         boolean success = taskService.modifyTask(taskUpdates);
         if (success) {
@@ -73,8 +75,8 @@ public class TaskController {
     }
 
     // Show Board
-    @GetMapping("/board")
-    public ResponseEntity<List<Task>> showBoard() {
+    @GetMapping("/getAllTasks")
+    public ResponseEntity<List<Task>> getAllTasks() {
         List<Task> tasks = taskService.getAllTasks();
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }

@@ -1,5 +1,6 @@
 package edu.syr.task.model;
 
+import edu.syr.task.dto.TaskDTO;
 import lombok.*;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -19,7 +20,7 @@ public class User {
     private  String department;
 
     @DBRef
-    private List<Task> tasks = new ArrayList<>();
+    private List<TaskDTO> tasks = new ArrayList<>();
 
 
 }

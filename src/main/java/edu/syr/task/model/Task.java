@@ -26,6 +26,7 @@ public class Task {
     private String description;
     private List<String> comments;
     private LocalDateTime creationTime;
+    private String closedTime;
     private HashMap<Integer,List<String>> alldetails;
 
 }

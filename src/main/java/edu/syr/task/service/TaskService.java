@@ -1,7 +1,9 @@
 package edu.syr.task.service;
 
 
+import edu.syr.task.dto.TaskDTO;
 import edu.syr.task.exception.TaskException;
+import edu.syr.task.model.State;
 import edu.syr.task.model.Task;
 import edu.syr.task.model.User;
 import edu.syr.task.repository.TaskRepository;
@@ -9,6 +11,7 @@ import edu.syr.task.repository.UserRepository;
 import edu.syr.task.util.LoggerSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +24,8 @@ public class TaskService {
 
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private UserService userService;
     private LoggerSingleton logger = LoggerSingleton.getInstance();
     @Autowired
     private UserRepository userRepository;
@@ -41,7 +46,7 @@ public class TaskService {
 
             taskRepository.delete(taskOptional);
 
-            Optional<User> userOptional = userRepository.findByTasksId(taskOptional.getId());
+            Optional<User> userOptional = userRepository.findByTasksTaskid(taskOptional.getTaskid());
             if (userOptional.isPresent()) {
                 User user = userOptional.get();
                 user.getTasks().remove(taskOptional);
@@ -60,7 +65,7 @@ public class TaskService {
         logger.log("Fetching all tasks");
         return taskRepository.findAll();
     }
-
+@Transactional
     public boolean modifyTask(Task taskUpdates) {
         Integer  taskId = taskUpdates.getTaskid();
 
@@ -68,17 +73,15 @@ public class TaskService {
 
         Task optionalOriginalTask = taskRepository.findByTaskid(taskId);
 
+
+
         if (optionalOriginalTask==null) {
             logger.log("Task not found with ID: " + taskId);
             throw new TaskException("Task not found with ID: " + taskId);
         }
 
-        String assignedUser = taskUpdates.getAssignedTo();
-        List<User> checkuser = userRepository.existsByName(assignedUser);
 
-        if (checkuser.isEmpty()) {
-            throw new TaskException("Assigned user not found in User table.");
-        }
+
 
         Task originalTask = optionalOriginalTask;
         List<String> changes = new ArrayList<>();
@@ -94,7 +97,29 @@ public class TaskService {
 
         if (!areTaskStates(originalTask.getState(), taskUpdates.getState())) {
             changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time: " + formattedDateTime);
+
+
+
+            if (taskUpdates.getState()== State.DONE)
+            {
+                originalTask.setClosedTime(LocalDateTime.now().format(formatter));
+            }
             originalTask.setState(taskUpdates.getState());
+
+            List<User> usersWithTask = userService.findUsersByTaskId(taskId);
+            if (usersWithTask!=null) {
+                for (User user : usersWithTask) {
+                    List<TaskDTO> tasks = user.getTasks();
+                    for (TaskDTO task : tasks) {
+                        if (task.getTaskid() == taskId) {
+                            task.setState(taskUpdates.getState());
+                            break;
+                        }
+                    }
+                    userRepository.save(user);
+                }
+            }
+
         }
 
         if (!aredescription(originalTask.getDescription(),taskUpdates.getDescription()))
