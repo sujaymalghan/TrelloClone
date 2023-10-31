@@ -6,7 +6,15 @@ public class TaskUtil {
 
     public static boolean areStringsEqualIgnoreCase(String str1, String str2) {
 
-        return str1.equalsIgnoreCase(str2.toLowerCase());
+        if (str1 == null && str2 == null) {
+            return true;
+        }
+
+        if (str1 == null || str2 == null) {
+            return false;
+        }
+
+        return str1.equalsIgnoreCase(str2);
     }
 
     public static boolean areTaskStates(State state1, State state2) {
@@ -17,9 +25,12 @@ public class TaskUtil {
     }
 
     public static boolean aredescription(String description, String description1) {
-        if (description == null || description1 == null) {
-            return description.equals(description1);
+
+        if (description1 == null) {
+            description1="";
         }
+
+
         return description.equalsIgnoreCase(description1);
     }
 

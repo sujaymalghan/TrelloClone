@@ -1,6 +1,7 @@
 package edu.syr.task.service;
 
 import edu.syr.task.dto.TaskDTO;
+import edu.syr.task.dto.UserDTO;
 import edu.syr.task.model.User;
 import edu.syr.task.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -53,4 +55,26 @@ public class UserService {
        return  userRepository.existsByName(assignedTo);
 
     }
+    public UserDTO convertToDTO(User user) {
+        UserDTO dto = new UserDTO();
+        dto.setName(user.getName());
+        dto.setDepartment(user.getDepartment());
+
+        return dto;
+    }
+
+    public List<String> findUsersByStartingLetter(String assignedTo) {
+
+
+        List<User> users = userRepository.findUsersByStartingLetter(assignedTo);
+        List<UserDTO> dtos = users.stream().map(this::convertToDTO).collect(Collectors.toList());
+
+        List<String> formattedUsers = new ArrayList<>();
+        for (int i = 0; i < dtos.size(); i++) {
+            formattedUsers.add("User " + (i + 1) + " " + dtos.get(i).toString());
+        }
+        return formattedUsers;
+    }
+
+
 }

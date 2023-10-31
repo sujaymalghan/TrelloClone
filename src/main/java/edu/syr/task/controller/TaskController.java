@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -34,12 +35,16 @@ public class TaskController {
         task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
         task.setState(State.TODO);
         task.setAssignedTo("");
-        task.setCreationTime(LocalDateTime.now().toString());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = LocalDateTime.now().format(formatter);
+
+        task.setCreationTime(formattedDateTime);
         task.setComments(Arrays.asList(""));
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
         HashMap<Integer, List<String>> hashMap = new HashMap<>();
         hashMap.put(task.getTaskid(), Arrays.asList(" "));
-        task.setAlldetails(hashMap);
+        task.setLogs(hashMap);
         task.setClosedTime(null);
         task = taskService.save(task);
         return new ResponseEntity<>(task.getTaskid(), HttpStatus.CREATED);

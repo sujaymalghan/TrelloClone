@@ -12,5 +12,9 @@ public class UserDTO {
 
     private String name;
     private String department;
+    @Override
+    public String toString() {
+        return String.format("(%s, %s)", name, department);
+    }
 
 }

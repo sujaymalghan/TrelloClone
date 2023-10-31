@@ -11,8 +11,12 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends MongoRepository<User, ObjectId> {
-    @Query("{ 'name' : { $regex: ?0, $options: 'i' } }")
+    @Query("{ 'name' : { $regex: '^?0$', $options: 'i' } }")
     List<User> existsByName(String assignedUser);
 
-    Optional<User> findByTasksTaskid(Integer taskid);
+    List<User> findByTasksTaskid(Integer taskid);
+
+    @Query("{ 'name' : { $regex: '^?0', $options: 'i' } }")
+    List<User> findUsersByStartingLetter(String letter);
+
 }

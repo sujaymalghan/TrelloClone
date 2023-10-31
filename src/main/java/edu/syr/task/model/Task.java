@@ -27,6 +27,6 @@ public class Task {
     private List<String> comments;
     private String creationTime;
     private String closedTime;
-    private HashMap<Integer,List<String>> alldetails;
+    private HashMap<Integer,List<String>> logs;
 
 }

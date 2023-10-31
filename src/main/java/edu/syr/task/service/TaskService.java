@@ -2,6 +2,7 @@ package edu.syr.task.service;
 
 
 import edu.syr.task.dto.TaskDTO;
+import edu.syr.task.dto.UserDTO;
 import edu.syr.task.exception.TaskException;
 import edu.syr.task.model.State;
 import edu.syr.task.model.Task;
@@ -13,9 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static edu.syr.task.util.TaskUtil.*;
 
@@ -46,10 +50,10 @@ public class TaskService {
 
             taskRepository.delete(taskOptional);
 
-            Optional<User> userOptional = userRepository.findByTasksTaskid(taskOptional.getTaskid());
-            if (userOptional.isPresent()) {
-                User user = userOptional.get();
-                user.getTasks().remove(taskOptional);
+            List<User> usersWithTask = userRepository.findByTasksTaskid(taskid);
+
+            for (User user : usersWithTask) {
+                user.getTasks().removeIf(task -> task.getTaskid() == taskid  );
                 userRepository.save(user);
             }
             logger.log("Successfully deleted task with ID: " + taskid);
@@ -73,8 +77,6 @@ public boolean modifyTask(Task taskUpdates) {
 
         Task optionalOriginalTask = taskRepository.findByTaskid(taskId);
 
-
-
         if (optionalOriginalTask==null) {
             logger.log("Task not found with ID: " + taskId);
             throw new TaskException("Task not found with ID: " + taskId);
@@ -82,35 +84,72 @@ public boolean modifyTask(Task taskUpdates) {
 
         Task originalTask = optionalOriginalTask;
         List<String> changes = new ArrayList<>();
-        HashMap<Integer, List<String>> newchanges = originalTask.getAlldetails();
+        HashMap<Integer, List<String>> newchanges = originalTask.getLogs();
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = LocalDateTime.now().format(formatter);
 
-        if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
-            changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + "at Time: "+ formattedDateTime );
-            originalTask.setAssignedTo(taskUpdates.getAssignedTo());
-            List<User> existingUsers = userService.existsByName(taskUpdates.getAssignedTo());
-            if (!existingUsers.isEmpty()) {
+            if(taskUpdates.getAssignedTo() !=null && taskUpdates.getAssignedTo()!="") {
 
-                User assignedUser = existingUsers.get(0);
-                TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(), taskUpdates.getState());
-                assignedUser.getTasks().removeIf(task -> task.getTaskid() == newTaskDTO.getTaskid());
+                if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
 
-                assignedUser.getTasks().add(newTaskDTO);
+                    changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + "at Time: " + formattedDateTime);
 
-                userRepository.save(assignedUser);
+                    originalTask.setAssignedTo(taskUpdates.getAssignedTo());
+
+                    List<User> existingUsers = userService.existsByName(taskUpdates.getAssignedTo().trim());
+
+                    if (!existingUsers.isEmpty()) {
+
+                        User assignedUser = existingUsers.get(0);
+                        TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(), taskUpdates.getState());
+                        assignedUser.getTasks().removeIf(task -> task.getTaskid() == newTaskDTO.getTaskid());
+
+                        assignedUser.getTasks().add(newTaskDTO);
+
+                        userRepository.save(assignedUser);
+                    } else {
+
+                        if (userService.findUsersByStartingLetter(taskUpdates.getAssignedTo()).isEmpty()) {
+                            List<User> allUsers = userService.getAllusers();
+                            String userListString = IntStream.range(0, allUsers.size())
+                                    .mapToObj(i -> "Name " + (i+1) + ": " + allUsers.get(i).getName() +
+                                            ", Department " + ": " + allUsers.get(i).getDepartment())
+                                    .collect(Collectors.joining("\n"));
+
+
+                            throw new TaskException("Please Provide name from the given list: " + userListString);
+                        }
+
+                        throw new TaskException("Please Provide name from the  given list" + userService.findUsersByStartingLetter(taskUpdates.getAssignedTo()));
+                    }
+                }
             }
-
-        }
 
         if (!areTaskStates(originalTask.getState(), taskUpdates.getState())) {
+
             changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time: " + formattedDateTime);
+
             if (taskUpdates.getState()== State.DONE)
             {
-                originalTask.setClosedTime(LocalDateTime.now().format(formatter));
+                LocalDateTime creationTime = LocalDateTime.parse(originalTask.getCreationTime(), formatter);
+                LocalDateTime currentTime = LocalDateTime.now();
+                Duration duration = Duration.between(creationTime, currentTime);
+                long days = duration.toDays();
+                long hours = duration.toHours() - (days * 24);
+                long minutes = duration.toMinutes() - (days * 24 * 60) - (hours * 60);
+
+                String durationString = String.format("%d days, %d hours, %d minutes", days, hours, minutes);
+
+                originalTask.setClosedTime(durationString);
 
             }
+            else {
+
+                originalTask.setClosedTime("");
+            }
+
+
             originalTask.setState(taskUpdates.getState());
 
             List<User> usersWithTask = userService.findUsersByTaskId(taskId);
@@ -129,18 +168,19 @@ public boolean modifyTask(Task taskUpdates) {
 
         }
 
-        if (!aredescription(originalTask.getDescription(),taskUpdates.getDescription()))
+        if (taskUpdates.getDescription()!=null && !aredescription(originalTask.getDescription(),taskUpdates.getDescription())   )
         {
             originalTask.setDescription("New Desciption: " + taskUpdates.getDescription() );
+            originalTask.setDescription(taskUpdates.getDescription());
         }
 
 
-        originalTask.setDescription(taskUpdates.getDescription());
+
         List<String> originalComments = originalTask.getComments();
         List<String> commentsFromUpdatedTask = taskUpdates.getComments();
 
         if (commentsFromUpdatedTask != null && !commentsFromUpdatedTask.isEmpty()) {
-            changes.add("Added new comments: " + commentsFromUpdatedTask + "at Timme:  " + formattedDateTime);
+            changes.add("Added new comments: " + commentsFromUpdatedTask + "at Time:  " + formattedDateTime);
             originalComments.addAll(commentsFromUpdatedTask);
         }
 
@@ -148,7 +188,7 @@ public boolean modifyTask(Task taskUpdates) {
         changes.addAll(newchanges.get(taskId)!=null ? newchanges.get((taskId)) : Arrays.asList(""));
         HashMap<Integer,List<String>> modifiedalldetials =new HashMap<>();
         modifiedalldetials.put(taskId,changes);
-        originalTask.setAlldetails(modifiedalldetials);
+        originalTask.setLogs(modifiedalldetials);
         taskRepository.save(originalTask);
         logger.log("Successfully modified task with ID: " + taskId);
         return true;
