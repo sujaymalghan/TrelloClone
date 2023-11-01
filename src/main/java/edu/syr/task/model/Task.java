@@ -9,23 +9,43 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * Represents a Task entity in the MongoDB "tasks" collection.
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "tasks")
 public class Task {
 
+    /** Unique identifier for the task. */
     @Id
     private String id;
 
+    /** An integer identifier for the task. */
     private Integer taskid;
-    private State state;
-    private String assignedTo;
-    private String description;
-    private List<String> comments;
-    private String dueDate;
-    private String creationTime;
-    private String closedTime;
-    private HashMap<Integer,List<String>> logs;
 
+    /** State of the task. */
+    private State state;
+
+    /** User to whom the task is assigned. */
+    private String assignedTo;
+
+    /** Description of the task. */
+    private String description;
+
+    /** List of comments associated with the task. */
+    private List<String> comments;
+
+    /** Due date for the task. */
+    private String dueDate;
+
+    /** Creation time of the task. */
+    private String creationTime;
+
+    /** Closed time of the task if applicable. */
+    private String closedTime;
+
+    /** Logs related to the task. */
+    private HashMap<Integer,List<String>> logs;
 }

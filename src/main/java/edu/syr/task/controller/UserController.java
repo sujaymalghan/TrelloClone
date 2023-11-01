@@ -8,7 +8,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
+/**
+ * REST Controller that provides endpoints for CRUD operations on Users.
+ *
+ * <p>
+ * This controller handles the management of users which include creating
+ * and fetching users. It also provides an endpoint to fetch users based
+ * on a specific task ID. The UserController relies on the UserService
+ * to carry out these operations.
+ * </p>
+ */
 @RestController
 @RequestMapping("/users")
 public class UserController {

@@ -17,6 +17,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+/**
+ * REST Controller that provides endpoints for CRUD operations on Tasks.
+ *
+ * <p>
+ * This controller handles the management of tasks which include creating,
+ * modifying, deleting, and fetching tasks. It uses the TaskService to
+ * perform these operations.
+ * </p>
+ */
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
@@ -100,9 +109,6 @@ public class TaskController {
     public ResponseEntity<String> handleTaskException(TaskException e) {
         return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
     }
-
-
-
 
 }
 

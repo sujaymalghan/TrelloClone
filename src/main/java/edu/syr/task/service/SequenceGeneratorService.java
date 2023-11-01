@@ -13,9 +13,20 @@ import static org.springframework.data.mongodb.core.query.Query.query;
 @Service
 public class SequenceGeneratorService {
 
+    /**
+     * The MongoOperations instance for database operations.
+     */
     @Autowired
     private MongoOperations mongoOperations;
 
+    /**
+     * Generates a sequence number for the provided sequence name.
+     * If the sequence does not exist, it creates one and initializes the sequence to 1.
+     * If the sequence exists, it increments the current value by 1.
+     *
+     * @param seqName The name of the sequence for which the next number is required.
+     * @return The next number in the sequence.
+     */
     public long generateSequence(String seqName) {
         DatabaseSequence counter = mongoOperations.findAndModify(
                 query(where("_id").is(seqName)),
