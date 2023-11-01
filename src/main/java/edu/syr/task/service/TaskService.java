@@ -89,11 +89,26 @@ public boolean modifyTask(Task taskUpdates) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = LocalDateTime.now().format(formatter);
 
-            if(taskUpdates.getAssignedTo() !=null && taskUpdates.getAssignedTo()!="") {
+    if (!areDueDatesSame(originalTask.getDueDate(), taskUpdates.getDueDate())) {
+
+        changes.add("Due date changed from " + originalTask.getDueDate()
+                + " to " + taskUpdates.getDueDate()
+                + " at Time: " + formattedDateTime);
+
+        originalTask.setDueDate(taskUpdates.getDueDate());
+
+
+    }
+
+
+
+
+
+    if(taskUpdates.getAssignedTo() !=null && taskUpdates.getAssignedTo()!="") {
 
                 if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
 
-                    changes.add("AssignedTo changed from " + originalTask.getAssignedTo() + " to " + taskUpdates.getAssignedTo() + "at Time: " + formattedDateTime);
+                    changes.add("AssignedTo added " + taskUpdates.getAssignedTo() + "at Time: " + formattedDateTime);
 
                     originalTask.setAssignedTo(taskUpdates.getAssignedTo());
 
@@ -128,7 +143,7 @@ public boolean modifyTask(Task taskUpdates) {
 
         if (!areTaskStates(originalTask.getState(), taskUpdates.getState())) {
 
-            changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time: " + formattedDateTime);
+            changes.add("State changed from " + originalTask.getState() + " to " + taskUpdates.getState() + " at Time:  " + formattedDateTime);
 
             if (taskUpdates.getState()== State.DONE)
             {
@@ -193,6 +208,7 @@ public boolean modifyTask(Task taskUpdates) {
         logger.log("Successfully modified task with ID: " + taskId);
         return true;
     }
+
 
 
 }

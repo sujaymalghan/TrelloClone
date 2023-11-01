@@ -27,12 +27,13 @@ public class UserController {
     }
 
     @GetMapping("/taskid/{taskId}")
-    public ResponseEntity<List<User>> findUsersByTaskId(@PathVariable int taskId) {
+    public ResponseEntity<Object> findUsersByTaskId(@PathVariable int taskId) {
         List<User> users = userService.findUsersByTaskId(taskId);
         if (users != null && !users.isEmpty()) {
             return new ResponseEntity<>(users, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+            return new ResponseEntity<>("No User found with taskid = " + taskId,HttpStatus.NOT_FOUND);
         }
     }
 

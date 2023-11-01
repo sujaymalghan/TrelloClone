@@ -23,6 +23,7 @@ public class Task {
     private String assignedTo;
     private String description;
     private List<String> comments;
+    private String dueDate;
     private String creationTime;
     private String closedTime;
     private HashMap<Integer,List<String>> logs;

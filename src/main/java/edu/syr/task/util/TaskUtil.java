@@ -34,4 +34,18 @@ public class TaskUtil {
         return description.equalsIgnoreCase(description1);
     }
 
+    public static boolean areDueDatesSame(String dueDate, String dueDate1) {
+
+        if (dueDate == null && dueDate1 == null) {
+            return true;
+        }
+        if ((dueDate == null && dueDate1 != null) || (dueDate != null && dueDate1 == null)) {
+            return false;
+        }
+
+        return dueDate.equals(dueDate1);
+
+    }
+
+
 }

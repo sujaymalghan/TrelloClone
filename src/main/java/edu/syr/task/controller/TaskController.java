@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -26,19 +27,27 @@ public class TaskController {
     @Autowired
     private SequenceGeneratorService sequenceGeneratorService;
 
-
-
     // Create Task
     @PostMapping("/create")
-    public ResponseEntity<Integer> createTask(@RequestBody Task newtask) {
+    public ResponseEntity<String> createTask(@RequestBody Task newtask){
+
+        if(newtask.getDueDate()=="" || newtask.getDueDate()==null)
+        {
+            return new ResponseEntity<String>("Due Date cannot be empty", HttpStatus.BAD_REQUEST);
+        }
+
+        if (LocalDate.parse(newtask.getDueDate()).isBefore(LocalDate.now()))
+        {
+            return new ResponseEntity<String>("Due Date cannot be Past Date", HttpStatus.BAD_REQUEST);
+
+        }
+
         Task task = new Task();
         task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
         task.setState(State.TODO);
         task.setAssignedTo("");
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = LocalDateTime.now().format(formatter);
-
         task.setCreationTime(formattedDateTime);
         task.setComments(Arrays.asList(""));
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
@@ -46,8 +55,9 @@ public class TaskController {
         hashMap.put(task.getTaskid(), Arrays.asList(" "));
         task.setLogs(hashMap);
         task.setClosedTime(null);
+        task.setDueDate(newtask.getDueDate());
         task = taskService.save(task);
-        return new ResponseEntity<>(task.getTaskid(), HttpStatus.CREATED);
+        return new ResponseEntity<>(task.getTaskid().toString(), HttpStatus.CREATED);
     }
 
     // Modify Task
