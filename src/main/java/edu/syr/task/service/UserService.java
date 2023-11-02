@@ -5,6 +5,7 @@ import edu.syr.task.dto.UserDTO;
 import edu.syr.task.model.User;
 import edu.syr.task.repository.UserRepository;
 import edu.syr.task.util.LoggerSingleton;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,6 +44,11 @@ public class UserService {
             logger.log("Error while creating user: " + e.getMessage());
             throw e;
         }
+    }
+
+
+    public void deleteUser(ObjectId id) {
+        userRepository.deleteById(id);
     }
 
     /**
