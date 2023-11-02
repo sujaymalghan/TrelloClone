@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +55,7 @@ public class TaskController {
         Task task = new Task();
         task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
         task.setState(State.TODO);
-        task.setAssignedTo("");
+        task.setAssignedTo(new ArrayList<>());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = LocalDateTime.now().format(formatter);
         task.setCreationTime(formattedDateTime);

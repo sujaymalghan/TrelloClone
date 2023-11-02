@@ -1,14 +1,12 @@
 package edu.syr.task;
 
 import edu.syr.task.model.User;
-import org.bson.types.ObjectId;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-
 import java.util.Arrays;
 
 
@@ -48,7 +46,7 @@ public class TaskApplication {
 
 			// Modify the task
 			Integer taskId = Integer.valueOf(createResponse.getBody());
-			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":\"Mike\"}";
+			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":[\"Mike\"]}";
 			HttpEntity<String> modifyEntity = new HttpEntity<>(modifyJson, headers);
 			ResponseEntity<String> modifyResponse = restTemplate.exchange("http://localhost:8080/tasks/modify", HttpMethod.PUT, modifyEntity, String.class);
 			System.out.println("Modify Task Response:");
@@ -63,7 +61,7 @@ public class TaskApplication {
 				for (User user : allUsers) {
 					System.out.println("  Name: " + user.getName());
 					System.out.println("  Department: " + user.getDepartment());
-					// ... (tasks associated with this user)
+
 				}
 			} else {
 				System.out.println("  No users found.");

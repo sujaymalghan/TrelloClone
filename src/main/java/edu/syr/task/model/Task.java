@@ -29,7 +29,7 @@ public class Task {
     private State state;
 
     /** User to whom the task is assigned. */
-    private String assignedTo;
+    private List<String> assignedTo;
 
     /** Description of the task. */
     private String description;

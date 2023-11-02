@@ -165,12 +165,17 @@ public class TaskService {
             }
 
 
-            if (taskUpdates.getAssignedTo() != null && taskUpdates.getAssignedTo() != "") {
-                if (!areStringsEqualIgnoreCase(originalTask.getAssignedTo(), taskUpdates.getAssignedTo())) {
-                    changes.add("AssignedTo added " + taskUpdates.getAssignedTo() + "at Time: " + formattedDateTime);
-                    originalTask.setAssignedTo(taskUpdates.getAssignedTo());
-                    List<User> existingUsers = userService.existsByName(taskUpdates.getAssignedTo().trim());
+            if (taskUpdates.getAssignedTo() != null && !taskUpdates.getAssignedTo().isEmpty()) {
+                List<String> originalAssignedToList = originalTask.getAssignedTo();
+                String updatedAssignedTo = taskUpdates.getAssignedTo().get(0); // Since there's always one value
 
+                if (!originalAssignedToList.contains(updatedAssignedTo)) {
+                    List<String> mergedAssignedToList = new ArrayList<>(originalAssignedToList);
+                    mergedAssignedToList.add(updatedAssignedTo);
+                    changes.add("AssignedTo " + originalAssignedToList + " to " + mergedAssignedToList + " at Time: " + formattedDateTime);
+                    originalTask.setAssignedTo(mergedAssignedToList);
+
+                    List<User> existingUsers = userService.existsByName(updatedAssignedTo.trim());
                     if (!existingUsers.isEmpty()) {
                         User assignedUser = existingUsers.get(0);
                         TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(), taskUpdates.getState());
@@ -178,7 +183,7 @@ public class TaskService {
                         assignedUser.getTasks().add(newTaskDTO);
                         userRepository.save(assignedUser);
                     } else {
-                        if (userService.findUsersByStartingLetter(taskUpdates.getAssignedTo()).isEmpty()) {
+                        if (userService.findUsersByStartingLetter(updatedAssignedTo).isEmpty()) {
                             List<User> allUsers = userService.getAllusers();
                             String userListString = IntStream.range(0, allUsers.size())
                                     .mapToObj(i -> "Name " + (i + 1) + ": " + allUsers.get(i).getName() +
@@ -186,10 +191,11 @@ public class TaskService {
                                     .collect(Collectors.joining("\n"));
                             throw new TaskException("Please Provide name from the given list: " + userListString);
                         }
-                        throw new TaskException("Please Provide name from the  given list" + userService.findUsersByStartingLetter(taskUpdates.getAssignedTo()));
+                        throw new TaskException("Please Provide name from the given list" + userService.findUsersByStartingLetter(updatedAssignedTo));
                     }
                 }
             }
+
 
 
             List<User> usersWithTask = userService.findUsersByTaskId(taskId);

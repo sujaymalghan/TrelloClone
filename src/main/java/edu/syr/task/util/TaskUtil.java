@@ -4,6 +4,9 @@ import edu.syr.task.model.State;
 import edu.syr.task.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class TaskUtil {
     @Autowired
     private static UserService userService;
@@ -60,6 +63,18 @@ public class TaskUtil {
 
 
         return description.equalsIgnoreCase(description1);
+    }
+
+    public static boolean areListsEqualIgnoreCase(List<String> list1, List<String> list2) {
+        if (list1 == null || list2 == null) {
+            return list1 == list2;
+        }
+        if (list1.size() != list2.size()) {
+            return false;
+        }
+        List<String> lowerCaseList1 = list1.stream().map(String::toLowerCase).collect(Collectors.toList());
+        List<String> lowerCaseList2 = list2.stream().map(String::toLowerCase).collect(Collectors.toList());
+        return lowerCaseList1.containsAll(lowerCaseList2);
     }
 
 
