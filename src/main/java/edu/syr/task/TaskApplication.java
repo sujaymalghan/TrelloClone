@@ -26,13 +26,13 @@ public class TaskApplication {
 			// Create a User
 			HttpHeaders createHeaders = new HttpHeaders();
 			createHeaders.setContentType(MediaType.APPLICATION_JSON);
-			String createUserJson = "{\"name\":\"Jack\",\"department\":\"HR\"}";
+			String createUserJson = "{\"name\":\"MIKE\",\"department\":\"IT\"}";
 			HttpEntity<String> createUserEntity = new HttpEntity<>(createUserJson, createHeaders);
 			ResponseEntity<User> createUserResponse = restTemplate.postForEntity("http://localhost:8080/users/create", createUserEntity, User.class);
 			System.out.println("-----------------------------------------------------");
 			System.out.println("Create User Response:");
 			System.out.println("  " + createUserResponse.getBody());
-			ObjectId objectid = createUserResponse.getBody().getId();
+			String objectid = createUserResponse.getBody().getId();
 			System.out.println("-----------------------------------------------------");
 
 			// Create a Task
@@ -48,7 +48,7 @@ public class TaskApplication {
 
 			// Modify the task
 			Integer taskId = Integer.valueOf(createResponse.getBody());
-			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":\"Jack\"}";
+			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":\"Mike\"}";
 			HttpEntity<String> modifyEntity = new HttpEntity<>(modifyJson, headers);
 			ResponseEntity<String> modifyResponse = restTemplate.exchange("http://localhost:8080/tasks/modify", HttpMethod.PUT, modifyEntity, String.class);
 			System.out.println("Modify Task Response:");
@@ -98,7 +98,7 @@ public class TaskApplication {
 			System.out.println("-----------------------------------------------------");
 
 			HttpEntity<String> entity = new HttpEntity<>(headers);
-			ResponseEntity<String> deleteResponse = restTemplate.exchange("http://localhost:8080/users/delete/" + objectid.toString(), HttpMethod.DELETE, entity, String.class);
+			ResponseEntity<String> deleteResponse = restTemplate.exchange("http://localhost:8080/users/delete/" + objectid, HttpMethod.DELETE, entity, String.class);
 			System.out.println("Delete Response:");
 			System.out.println("  " + deleteResponse.getBody());
 			System.out.println("-----------------------------------------------------");

@@ -1,12 +1,14 @@
 package edu.syr.task.model;
 
 import edu.syr.task.dto.TaskDTO;
-import lombok.*;
-import org.bson.types.ObjectId;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.*;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a User entity in the MongoDB "users" collection.
@@ -19,7 +21,7 @@ public class User {
 
     /** Unique identifier for the user. */
     @Id
-    private ObjectId id;
+    private String id;
 
     /** Name of the user. */
     private String name;
