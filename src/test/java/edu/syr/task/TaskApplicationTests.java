@@ -2,7 +2,7 @@ package edu.syr.task;
 
 import edu.syr.task.controller.TaskController;
 import edu.syr.task.model.Task;
-import edu.syr.task.service.TaskService;
+import edu.syr.task.service.TaskServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -25,7 +25,7 @@ class TaskApplicationTests {
 	private TaskController taskController;
 
 	@Mock
-	private TaskService taskService;
+	private TaskServiceImpl taskServiceImpl;
 
 	@Test
 	void contextLoads() {
@@ -38,7 +38,7 @@ class TaskApplicationTests {
 		newTask.setDescription("Test Task");
 		newTask.setDueDate("2023-12-15");
 
-		when(taskService.save(any(Task.class))).thenReturn(newTask);
+		when(taskServiceImpl.save(any(Task.class))).thenReturn(newTask);
 
 		ResponseEntity<String> response = taskController.createTask(newTask);
 
@@ -52,7 +52,7 @@ class TaskApplicationTests {
 		modifiedTask.setTaskid(1);
 		modifiedTask.setDescription("Modified Description");
 
-		when(taskService.modifyTask(any(Task.class))).thenReturn(true);
+		when(taskServiceImpl.modifyTask(any(Task.class))).thenReturn(true);
 
 		ResponseEntity<String> response = taskController.modifyTask(modifiedTask);
 
@@ -74,7 +74,7 @@ class TaskApplicationTests {
 		tasks.add(task1);
 		tasks.add(task2);
 
-		when(taskService.getAllTasks()).thenReturn(tasks);
+		when(taskServiceImpl.getAllTasks()).thenReturn(tasks);
 
 		ResponseEntity<List<Task>> response = taskController.getAllTasks();
 

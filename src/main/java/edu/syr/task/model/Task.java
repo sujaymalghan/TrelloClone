@@ -22,6 +22,7 @@ public class Task {
     @Id
     private String id;
 
+    private Long boardId;
     /** An integer identifier for the task. */
     private Integer taskid;
 
@@ -29,7 +30,7 @@ public class Task {
     private State state;
 
     /** User to whom the task is assigned. */
-    private List<String> assignedTo;
+    private String assignedTo;
 
     /** Description of the task. */
     private String description;

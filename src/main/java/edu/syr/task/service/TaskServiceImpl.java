@@ -3,12 +3,11 @@ package edu.syr.task.service;
 
 import edu.syr.task.dto.TaskDTO;
 import edu.syr.task.exception.TaskException;
-import edu.syr.task.model.State;
-import edu.syr.task.model.Task;
-import edu.syr.task.model.TaskObservable;
-import edu.syr.task.model.User;
+import edu.syr.task.model.*;
+import edu.syr.task.repository.BoardRepository;
 import edu.syr.task.repository.TaskRepository;
 import edu.syr.task.repository.UserRepository;
+import edu.syr.task.service.interfaces.TaskService;
 import edu.syr.task.util.LoggerSingleton;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,17 +17,14 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static edu.syr.task.util.TaskUtil.*;
 
 @Service
-public class TaskService {
+public class TaskServiceImpl implements TaskService {
 
     /**
      * The TaskRepository instance for task-related database operations.
@@ -36,11 +32,13 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @Autowired
+    private BoardRepository boardRepository;
     /**
-     * The UserService instance for user-related operations.
+     * The UserServiceImpl instance for user-related operations.
      */
     @Autowired
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     /**
      * The LoggerSingleton instance for logging operations.
@@ -99,7 +97,6 @@ public class TaskService {
             throw e;
         }
     }
-
     /**
      * Fetches all tasks from the repository.
      *
@@ -160,45 +157,88 @@ public class TaskService {
                         throw new TaskException("\"Due Date cannot be Past Date\"");
                     }
                 }
-
-
             }
 
+            if (taskUpdates.getBoardId() != null) {
+                Optional<Board> optionalBoard = boardRepository.findById(taskUpdates.getBoardId());
+                if (optionalBoard.isPresent()) {
+                    Board newBoard = optionalBoard.get();
+                    changes.add("Assigned to board with ID: " + taskUpdates.getBoardId() + " at Time: " + formattedDateTime);
+                    originalTask.setBoardId(taskUpdates.getBoardId());
+
+                    if (originalTask.getBoardId() != null && !originalTask.getBoardId().equals(taskUpdates.getBoardId())) {
+                        Optional<Board> optionalOriginalBoard = boardRepository.findById(originalTask.getBoardId());
+                        if (optionalOriginalBoard.isPresent()) {
+                            Board originalBoard = optionalOriginalBoard.get();
+                            originalBoard.getTaskLists().remove(originalTask);
+                            boardRepository.save(originalBoard);
+                        }
+                    }
+
+                    if (newBoard.getTaskLists() == null) {
+                        List<Task> taskList = new ArrayList<>();
+                        taskList.add(originalTask);
+                        newBoard.setTaskLists(taskList);
+                    } else {
+                        List<Task> updatedTasks = new ArrayList<>();
+                        for (Task task : newBoard.getTaskLists()) {
+                            if (!(task.getTaskid() == (taskUpdates.getTaskid()))) {
+                                updatedTasks.add(task);
+                            }
+                        }
+                        updatedTasks.add(taskUpdates);
+                        newBoard.setTaskLists(updatedTasks);
+
+                    }
+
+
+
+                    boardRepository.save(newBoard);
+                }else {
+                    throw new TaskException("Board not found with ID: " + taskUpdates.getBoardId());
+                }
+            }
 
             if (taskUpdates.getAssignedTo() != null && !taskUpdates.getAssignedTo().isEmpty()) {
-                List<String> originalAssignedToList = originalTask.getAssignedTo();
-                String updatedAssignedTo = taskUpdates.getAssignedTo().get(0); // Since there's always one value
+                String originalAssignedTo = originalTask.getAssignedTo();
+                String updatedAssignedTo = taskUpdates.getAssignedTo().trim();
 
-                if (!originalAssignedToList.contains(updatedAssignedTo)) {
-                    List<String> mergedAssignedToList = new ArrayList<>(originalAssignedToList);
-                    mergedAssignedToList.add(updatedAssignedTo);
-                    changes.add("AssignedTo " + originalAssignedToList + " to " + mergedAssignedToList + " at Time: " + formattedDateTime);
-                    originalTask.setAssignedTo(mergedAssignedToList);
+                if (!updatedAssignedTo.equals(originalAssignedTo)) {
+                    changes.add("AssignedTo " + originalAssignedTo + " to " + updatedAssignedTo + " at Time: " + formattedDateTime);
+                    originalTask.setAssignedTo(updatedAssignedTo);
 
-                    List<User> existingUsers = userService.existsByName(updatedAssignedTo.trim());
+                    if (originalAssignedTo != null && !originalAssignedTo.isEmpty()) {
+                        List<User> originalAssignedUsers = userServiceImpl.existsByName(originalAssignedTo);
+                        if (!originalAssignedUsers.isEmpty()) {
+                            User originalAssignedUser = originalAssignedUsers.get(0);
+                            originalAssignedUser.getTasks().removeIf(task -> task.getTaskid() == (taskUpdates.getTaskid()));
+                            userRepository.save(originalAssignedUser);
+                        }
+                    }
+
+                    List<User> existingUsers = userServiceImpl.existsByName(updatedAssignedTo);
                     if (!existingUsers.isEmpty()) {
                         User assignedUser = existingUsers.get(0);
-                        TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(), taskUpdates.getState());
-                        assignedUser.getTasks().removeIf(task -> task.getTaskid() == newTaskDTO.getTaskid());
+                        TaskDTO newTaskDTO = new TaskDTO(taskUpdates.getTaskid(),taskUpdates.getBoardId(), taskUpdates.getState());
+                        assignedUser.getTasks().removeIf(task -> task.getTaskid() == (newTaskDTO.getTaskid()));
                         assignedUser.getTasks().add(newTaskDTO);
                         userRepository.save(assignedUser);
                     } else {
-                        if (userService.findUsersByStartingLetter(updatedAssignedTo).isEmpty()) {
-                            List<User> allUsers = userService.getAllusers();
+                        if (userServiceImpl.findUsersByStartingLetter(updatedAssignedTo).isEmpty()) {
+                            List<User> allUsers = userServiceImpl.getAllUsers();
                             String userListString = IntStream.range(0, allUsers.size())
                                     .mapToObj(i -> "Name " + (i + 1) + ": " + allUsers.get(i).getName() +
                                             ", Department " + ": " + allUsers.get(i).getDepartment())
                                     .collect(Collectors.joining("\n"));
                             throw new TaskException("Please Provide name from the given list: " + userListString);
                         }
-                        throw new TaskException("Please Provide name from the given list" + userService.findUsersByStartingLetter(updatedAssignedTo));
+                        throw new TaskException("Please Provide name from the given list" + userServiceImpl.findUsersByStartingLetter(updatedAssignedTo));
                     }
                 }
             }
 
 
-
-            List<User> usersWithTask = userService.findUsersByTaskId(taskId);
+            List<User> usersWithTask = userServiceImpl.findUsersByTaskId(taskId);
             if (usersWithTask != null) {
                 for (User user : usersWithTask) {
                     taskObservable.addObserver(message -> System.out.println("User " + user.getName() + " notified: " + message));
@@ -264,6 +304,5 @@ public class TaskService {
             logger.log("Error while modifying task: " + e.getMessage());
             throw e;
         }
-
     }
 }

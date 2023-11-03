@@ -3,7 +3,7 @@ package edu.syr.task;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.syr.task.controller.UserController;
-import edu.syr.task.service.UserService;
+import edu.syr.task.service.UserServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -29,7 +29,7 @@ public class UserControllerTests {
     @Autowired
     ObjectMapper objectMapper;
     @MockBean
-    private UserService userService;
+    private UserServiceImpl userServiceImpl;
 
     @Test
     public void testCreateUser() throws Exception {

@@ -1,15 +1,12 @@
 package edu.syr.task.util;
 
 import edu.syr.task.model.State;
-import edu.syr.task.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class TaskUtil {
-    @Autowired
-    private static UserService userService;
+
 
 
     /**

@@ -3,8 +3,8 @@ package edu.syr.task.controller;
 import edu.syr.task.exception.TaskException;
 import edu.syr.task.model.State;
 import edu.syr.task.model.Task;
-import edu.syr.task.service.SequenceGeneratorService;
-import edu.syr.task.service.TaskService;
+import edu.syr.task.service.SequenceGeneratorImpl;
+import edu.syr.task.service.TaskServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +22,7 @@ import java.util.List;
  *
  * <p>
  * This controller handles the management of tasks which include creating,
- * modifying, deleting, and fetching tasks. It uses the TaskService to
+ * modifying, deleting, and fetching tasks. It uses the TaskServiceImpl to
  * perform these operations.
  * </p>
  */
@@ -33,9 +32,9 @@ public class TaskController {
 
 
     @Autowired
-    private TaskService taskService;
+    private TaskServiceImpl taskServiceImpl;
     @Autowired
-    private SequenceGeneratorService sequenceGeneratorService;
+    private SequenceGeneratorImpl sequenceGeneratorImpl;
 
     // Create Task
     @PostMapping("/create")
@@ -53,20 +52,21 @@ public class TaskController {
         }
 
         Task task = new Task();
-        task.setTaskid((int) sequenceGeneratorService.generateSequence("taskSeqName"));
+        task.setTaskid((int) sequenceGeneratorImpl.generateSequence("taskSeqName"));
         task.setState(State.TODO);
-        task.setAssignedTo(new ArrayList<>());
+        task.setAssignedTo("");
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         String formattedDateTime = LocalDateTime.now().format(formatter);
         task.setCreationTime(formattedDateTime);
         task.setComments(Arrays.asList(""));
+        task.setBoardId(newtask.getBoardId());
         task.setDescription((newtask.getDescription() != null && !newtask.getDescription().isEmpty()) ? newtask.getDescription() : "");
         HashMap<Integer, List<String>> hashMap = new HashMap<>();
         hashMap.put(task.getTaskid(), Arrays.asList(" "));
         task.setLogs(hashMap);
         task.setClosedTime(null);
         task.setDueDate(newtask.getDueDate());
-        task = taskService.save(task);
+        task = taskServiceImpl.save(task);
         return new ResponseEntity<>(task.getTaskid().toString(), HttpStatus.CREATED);
     }
 
@@ -78,8 +78,7 @@ public class TaskController {
             return new ResponseEntity<>("Task ID must be provided.", HttpStatus.BAD_REQUEST);
         }
 
-
-        boolean success = taskService.modifyTask(taskUpdates);
+        boolean success = taskServiceImpl.modifyTask(taskUpdates);
         if (success) {
             return new ResponseEntity<>("Task modified successfully.", HttpStatus.OK);
         } else {
@@ -91,7 +90,7 @@ public class TaskController {
     // Delete Task
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteTask(@PathVariable int id) {
-        boolean success = taskService.deleteTask(id);
+        boolean success = taskServiceImpl.deleteTask(id);
         if (success) {
             return new ResponseEntity<>("Task deleted successfully.", HttpStatus.OK);
         } else {
@@ -102,7 +101,7 @@ public class TaskController {
     // Show Board
     @GetMapping("/getAllTasks")
     public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.getAllTasks();
+        List<Task> tasks = taskServiceImpl.getAllTasks();
         return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 

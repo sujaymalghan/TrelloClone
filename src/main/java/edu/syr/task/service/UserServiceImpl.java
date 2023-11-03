@@ -4,6 +4,7 @@ import edu.syr.task.dto.TaskDTO;
 import edu.syr.task.dto.UserDTO;
 import edu.syr.task.model.User;
 import edu.syr.task.repository.UserRepository;
+import edu.syr.task.service.interfaces.UserService;
 import edu.syr.task.util.LoggerSingleton;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     /**
      * Singleton logger instance.
@@ -46,17 +47,18 @@ public class UserService {
         }
     }
 
-
     public void deleteUser(ObjectId id) {
         userRepository.deleteById(id);
     }
+
+
 
     /**
      * Retrieves all users from the database.
      *
      * @return A list of all users.
      */
-    public List<User> getAllusers() {
+    public List<User> getAllUsers() {
         try {
             logger.log("Fetching all users");
             return userRepository.findAll();

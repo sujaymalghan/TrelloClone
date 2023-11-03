@@ -1,5 +1,7 @@
 package edu.syr.task;
 
+import edu.syr.task.model.State;
+import edu.syr.task.model.Task;
 import edu.syr.task.model.User;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -7,6 +9,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import java.util.Arrays;
 
 
@@ -20,9 +24,27 @@ public class TaskApplication {
 	public CommandLineRunner run() {
 		return args -> {
 			RestTemplate restTemplate = new RestTemplate();
+			// Create a Board
+			HttpHeaders headers = new HttpHeaders();
+			HttpHeaders createHeaders = new HttpHeaders();
+	String baseUrl = "http://localhost:8080/board/create";
+
+	UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(baseUrl)
+			.queryParam("name", "Board 3")
+			.queryParam("description", "Create a Test for tasks");
+
+	ResponseEntity<Long> response = restTemplate.postForEntity(builder.toUriString(), null, Long.class);
+		Long boardId= 200L;
+		if (response.getStatusCode() == HttpStatus.OK) {
+	boardId = response.getBody();
+		System.out.println("Created board ID: " + boardId);
+	} else {
+		System.out.println("Failed to create board. Status code: " + response.getStatusCode());
+	}
+
+
 
 			// Create a User
-			HttpHeaders createHeaders = new HttpHeaders();
 			createHeaders.setContentType(MediaType.APPLICATION_JSON);
 			String createUserJson = "{\"name\":\"MIKE\",\"department\":\"IT\"}";
 			HttpEntity<String> createUserEntity = new HttpEntity<>(createUserJson, createHeaders);
@@ -34,7 +56,6 @@ public class TaskApplication {
 			System.out.println("-----------------------------------------------------");
 
 			// Create a Task
-			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 			String createJson = "{\"state\":\"TODO\",\"description\":\"Create a Backend for tasks\", \"dueDate\":\"2023-12-15\"}";
@@ -46,12 +67,22 @@ public class TaskApplication {
 
 			// Modify the task
 			Integer taskId = Integer.valueOf(createResponse.getBody());
-			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":[\"Mike\"]}";
+			String modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":\"Mike\"}";
 			HttpEntity<String> modifyEntity = new HttpEntity<>(modifyJson, headers);
 			ResponseEntity<String> modifyResponse = restTemplate.exchange("http://localhost:8080/tasks/modify", HttpMethod.PUT, modifyEntity, String.class);
 			System.out.println("Modify Task Response:");
 			System.out.println("  " + modifyResponse.getBody());
 			System.out.println("-----------------------------------------------------");
+
+
+			// Modify the task to assign it to the board
+			modifyJson = "{\"state\":\"DOING\",\"description\":\"Create a Backend for tasks\",\"dueDate\":\"2023-12-15\",\"taskid\":" + taskId + ", \"assignedTo\":\"Mike\", \"boardId\":" + boardId + "}";
+			HttpEntity<String> assignTaskToBoardEntity = new HttpEntity<>(modifyJson, headers);
+			ResponseEntity<String> assignTaskResponse = restTemplate.exchange("http://localhost:8080/tasks/modify", HttpMethod.PUT, assignTaskToBoardEntity, String.class);
+			System.out.println("Assign Task to Board Response:");
+			System.out.println("  " + assignTaskResponse.getBody());
+			System.out.println("-----------------------------------------------------");
+
 
 			// Get All Users
 			ResponseEntity<User[]> allUsersResponse = restTemplate.getForEntity("http://localhost:8080/users/getAllUsers", User[].class);
@@ -77,11 +108,46 @@ public class TaskApplication {
 			System.out.println("  " + modifyResponseNotify.getBody());
 			System.out.println("-----------------------------------------------------");
 
+
 			// Get User by Task id
 			ResponseEntity<Object> usersByTaskIdResponse = restTemplate.getForEntity("http://localhost:8080/users/taskid/{taskId}", Object.class, taskId);
 			System.out.println("Users by Task ID:");
 			System.out.println("  " + usersByTaskIdResponse.getBody());
 			System.out.println("-----------------------------------------------------");
+
+
+			//Modify the task
+			String url = "http://localhost:8080/tasks/modify";
+			Task taskUpdates = new Task();
+			taskUpdates.setTaskid(taskId);
+			taskUpdates.setState(State.DOING);
+			taskUpdates.setBoardId(boardId);
+			taskUpdates.setAssignedTo("George");
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<Task> requestEntity = new HttpEntity<>(taskUpdates, headers);
+
+			ResponseEntity<String> res = restTemplate.exchange(
+					url,
+					HttpMethod.PUT,
+					requestEntity,
+					String.class
+			);
+
+			if (res.getStatusCode() == HttpStatus.OK) {
+				System.out.println("Task modified successfully: " + res.getBody());
+			} else {
+				System.out.println("Failed to modify task: " + res.getStatusCode());
+			}
+
+
+			// Get All Boards
+			ResponseEntity<String> getAllBoardsResponse = restTemplate.getForEntity("http://localhost:8080/board/showallboards", String.class);
+			System.out.println("Get All Boards Response:");
+			System.out.println("  " + getAllBoardsResponse.getBody());
+			System.out.println("-----------------------------------------------------");
+
+
 
 			// Get All tasks (Show board)
 			ResponseEntity<String> getAllResponse = restTemplate.getForEntity("http://localhost:8080/tasks/getAllTasks", String.class);
@@ -100,6 +166,16 @@ public class TaskApplication {
 			System.out.println("Delete Response:");
 			System.out.println("  " + deleteResponse.getBody());
 			System.out.println("-----------------------------------------------------");
+
+
+			// Delete board
+			restTemplate.delete("http://localhost:8080/board/delete/" + boardId);
+			System.out.println("Delete Board Response:");
+			System.out.println("  Board " + boardId + " deleted.");
+			System.out.println("-----------------------------------------------------");
+
+
+
 		};
 	}
 

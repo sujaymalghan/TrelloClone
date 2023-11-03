@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 public class TaskDTO {
 
     private int taskid;
+    private Long boardId;
     private State state;
 
 }
